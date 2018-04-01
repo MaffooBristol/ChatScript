@@ -78,6 +78,7 @@ static int offsetCode = -1;
 int breakType = NO_BREAK;
 static bool WhereAmI(int depth);
 static char breakAt[400][40];
+static int rulesInMap = 0;
 static int breakIndex = 0;
 int sentenceMode = 0;
 static bool sysfail = false;
@@ -1359,7 +1360,8 @@ static void ReleaseFiles()
         while (line)
         {
             // line->text is built into the actual line struct
-            free(line->mapentry);
+			MAPDATA* entry = line->mapentry;
+			free(entry);
             LINEDATA* next = line->next;
             free(line);
             line = next;
@@ -1530,14 +1532,15 @@ bool StopIntended()
     }
     else
     {
-        ProcessInputFile(); // come back when this input is used up
+		if (!stricmp(word, ":build") || !stricmp(word, ":bot") || !stricmp(word, ":restart")) ReleaseFiles(); // release map and files
+		ProcessInputFile(); // come back when this input is used up
         if (!stricmp(word, ":trace"))
         {
             idetrace = trace;
         }
         else if (!stricmp(word, ":build") || !stricmp(word, ":bot") || !stricmp(word, ":restart")) // release map and files
         {
-            ReleaseFiles();
+            rulesInMap = 0;
             ReadMap("TOPIC/build1/map1.txt");
             ReadMap("TOPIC/build0/map0.txt");
             ReadSystemFunctionsMap("systemFunctions");
@@ -1565,6 +1568,8 @@ bool StopIntended()
     InvalidateRgn(scriptData.window, NULL, true);
     InvalidateRgn(stackData.window, NULL, true);
     InvalidateRgn(varData.window, NULL, true);
+	StatData();
+	//InvalidateRgn(hParent, NULL, true);
  }
 
  void  MyWorkerInitThread(void* pParam)
@@ -1772,6 +1777,13 @@ void CheckForEnter() // on input edit scriptData.window
         else ++breakpointCount;
         DiscardInput();
     }
+    else if (*word == ':' && !stricmp(word,":build") && !stricmp(word, ":restart") && !stricmp(word, ":bot") && !stricmp(word, ":user"))
+    {
+        char* buffer = AllocateBuffer();
+        DoCommand(answer, buffer);
+        FreeBuffer();
+        DiscardInput();
+    }
     else if (csThread)
     {
         DebugPrint("Cannot input to CS at breakpoint");
@@ -1963,13 +1975,55 @@ static char* DebugVar(char* name, char* value) // incoming variable assigns from
 
 char* DebugCall(char* name,bool in)
 {
-    bool stop = false;
+    if (globalAbort) return (char*)1;
+	if (in)
+	{
+		if (*name == '~')
+		{
+			int xx = 0; // topic call
+		}
+		else
+		{
+			int xx = 0; // function call
+		}
+	}
     int i;
-    CALLFRAME* frame = GetCallFrame(globalDepth);
-    if (strchr(frame->label, '(') && *frame->label == '^') return NULL; // no argument processing
+    int depth = globalDepth + 1; // if inside () dont react
+    CALLFRAME* frame;
+    while (--depth) // see if system function inside of some other arg processing
+    {
+        frame = GetCallFrame(depth);
+        if (strchr(frame->label, '('))
+        {
+            return NULL; // not stop in arg processing
+        }
+        if (strchr(frame->label, '{') && frame->code)
+        {
+            break; // legal to be here if not sys function
+        }
+    }
 
-    if (sysfail && *name == '^' && !frame->code && 
-        frame->x.result & FAILCODES && stricmp(name,"^fail"))
+    depth = globalDepth;
+    frame = GetCallFrame(globalDepth);
+    if (idestop && *name == '^' && frame->code) return NULL; // proceed "in" to action in a user routine
+
+    char* paren = strchr(frame->label, '(');
+
+    // get raw label
+    char label[500];
+    strcpy(label, frame->label);
+    char* at = strchr(label, '(');
+    if (at) *at = 0;
+    at = strchr(label, '{');
+    if (at) *at = 0;
+
+	bool stop = false;
+
+    if (paren && *frame->label == '^') return NULL; // no argument processing
+    if (paren && !strstr(frame->label,"if")) return NULL; // no argument processing
+    if (paren && !strstr(frame->label, "loop")) return NULL; // no argument processing
+    if (sysfail && *name == '^' && !frame->code &&
+        frame->x.result & FAILCODES && stricmp(name,"^fail") && !disableBreakpoints)
     {
         stop = true;
         DebugPrint("Break failing system call %s\r\n", name);
@@ -2319,6 +2373,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        inputData.rect.right - inputData.rect.left,  // width of client area 
        inputData.rect.bottom - inputData.rect.top,   // height of client area 
        TRUE);
+   SetFocus(inputData.window); // key input goes here
    SendMessage(inputData.window, WM_SETTEXT, 0, (LPARAM)"");
    SendMessage(inputData.window, WM_SETFONT, (WPARAM)hFont, false);
    SendMessage(inputData.window, EM_SETSEL, -1, -1);
@@ -2561,9 +2616,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		return 0;
-	case WM_SETFOCUS:
-		SetFocus(hWnd);
-		return 0;
+	//case WM_SETFOCUS:
+		//(hWnd);
+		//return 0;
 	case WM_HSCROLL:
         switch (LOWORD(wParam)) {
             case SB_THUMBTRACK:
