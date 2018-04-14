@@ -1,3 +1,3 @@
 
-pandoc Esoteric-ChatScript/ChatScript-Engine.md -s -o ../PDFDOCUMENTATION/ESOTERIC-CHATSCRIPT/ChatScript-Engine.pdf
-ppause
+pandoc Practicum-messaging.md -s -o ../PDFDOCUMENTATION/Practicum-messaging.pdf
+pause
