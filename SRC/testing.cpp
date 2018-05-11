@@ -9143,7 +9143,7 @@ static void BuildForeign(char* input)
 	InitCache();
 
 	InitFactWords();
-	AcquireDefines((char*)"SRC/dictionarySystem.h"); //   get dictionary defines (must occur before loop that decodes properties into sets (below)
+	AcquireDefines((char*)"DICT/dictionary_system.txt"); //   get dictionary defines (must occur before loop that decodes properties into sets (below)
 
 	char name[MAX_WORD_SIZE];
 	sprintf(name, "DICT/%s", language);

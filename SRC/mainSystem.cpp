@@ -801,7 +801,7 @@ unsigned int InitSystem(int argcx, char * argvx[],char* unchangedPath, char* rea
 	*traceuser = 0;
 	*hide = 0;
 	*botheader = 0;
-	FILE* in = FopenStaticReadOnly((char*)"SRC/dictionarySystem.h"); // SRC/dictionarySystem.h
+	FILE* in = FopenStaticReadOnly((char*)"DICT/dictionary_system.txt");
 	if (!in) // if we are not at top level, try going up a level
 	{
 #ifdef WIN32
