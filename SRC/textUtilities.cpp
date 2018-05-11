@@ -659,10 +659,10 @@ double Convert2Float(char* original, int useNumberStyle)
 
 void AcquireDefines(char* fileName)
 { // dictionary entries:  `xxxx (property names)  ``xxxx  (systemflag names)  ``` (parse flags values)  -- and flipped:  `nxxxx and ``nnxxxx and ```nnnxxx with infermrak being ptr to original name
-	FILE* in = FopenStaticReadOnly(fileName); // SRC/dictionarySystem.h
+	FILE* in = FopenStaticReadOnly(fileName); // DICT/dictionary_system.txt
 	if (!in) 
 	{
-		if ( !server) (*printer)((char*)"%s", (char*)"Unable to read dictionarySystem.h\r\n");
+		if ( !server) (*printer)((char*)"%s", (char*)"Unable to read DICT/dictionary_system.txt\r\n");
 		return;
 	}
 	char label[MAX_WORD_SIZE];

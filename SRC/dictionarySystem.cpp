@@ -3377,7 +3377,7 @@ void LoadDictionary()
 	if (!ReadBinaryDictionary()) //   if binary form not there or wrong hash, use text form (slower)
 	{
 		InitFactWords(); 
-		AcquireDefines((char*)"SRC/dictionarySystem.h"); //   get dictionary defines (must occur before loop that decodes properties into sets (below)
+		AcquireDefines((char*)"DICT/dictionary_system.txt"); //   get dictionary defines (must occur before loop that decodes properties into sets (below)
 		if (ReadAsciiDictionary())
 		{
 			*currentFilename = 0;
@@ -3391,7 +3391,7 @@ void LoadDictionary()
 	{
 		WORDP hold = dictionaryFree;
 		InitFactWords(); 
-		AcquireDefines((char*)"SRC/dictionarySystem.h"); 
+		AcquireDefines((char*)"DICT/dictionary_system.txt"); 
 		if (dictionaryFree != hold) ReportBug((char*)"FATAL: dict changed after binary read+supplement\r\n")
 	}
 	ReadAbbreviations((char*)"abbreviations.txt"); // needed for burst/tokenizing
@@ -7432,7 +7432,7 @@ void LoadRawDictionary(int mini) // 6 == foreign
 	fclose(out);
 	ClearWordMaps();
 
-	AcquireDefines("src/dictionarySystem.h"); // need to process raw dictionary data but should NOT be final dict, since this is a dynamic file
+	AcquireDefines("DICT/dictionary_system.txt"); // need to process raw dictionary data but should NOT be final dict, since this is a dynamic file
 	InitFactWords();
 	ExtendDictionary();
 	Dqword = StoreWord("~qwords");
